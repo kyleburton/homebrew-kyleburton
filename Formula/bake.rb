@@ -4,7 +4,7 @@ class Bake < Formula
   url "https://github.com/kyleburton/bake/releases/download/1.0.3/bake-1.0.3.tgz"
   sha256 "d46c14e20a2c5c6b2e9b274842346ef1c63ad0f68314973ca8cdaab695162d37"
 
-  depends_on "bash"
+  depends_on "bash" => :recommended
 
   def install
     bin.install "bin/bake"
