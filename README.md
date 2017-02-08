@@ -10,7 +10,7 @@ See also: [Using `brew tap`](https://github.com/Homebrew/brew/blob/master/docs/b
 
 
 ```
-brew tap --full github.com/kyleburton git@github.com:kyleburton/homebrew-kyleburton.git
+brew tap --full github/kyleburton https://github.com/kyleburton/homebrew-kyleburton.git
 brew install <formula>
 ```
 
