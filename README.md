@@ -12,6 +12,8 @@ See also: [Using `brew tap`](https://github.com/Homebrew/brew/blob/master/docs/b
 ```
 brew tap --full github/kyleburton https://github.com/kyleburton/homebrew-kyleburton.git
 brew install <formula>
+brew install bake                     # on OS X
+brew install bake --without-bash      # Linux
 ```
 
 ## How do I create a new Formula?
