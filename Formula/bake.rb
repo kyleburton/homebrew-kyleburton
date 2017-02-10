@@ -1,8 +1,8 @@
 class Bake < Formula
   desc "Pure bash, very lightweight scripting and build framework."
   homepage "https://github.com/kyleburton/bake"
-  url "https://github.com/kyleburton/bake/archive/1.0.4.tar.gz"
-  sha256 "f5e10929a1d691b54f81fbdba449b539943f28768b1d8a01bba0ddfea07d2984"
+  url "https://github.com/kyleburton/bake/releases/download/1.0.5/bake-1.0.5.tgz"
+  sha256 "f16d18c6c1e54ca35bf28fcf7564d10f8ceb4d38e9db2fc6de47211b3aa3eb1e"
 
   depends_on "bash" => :recommended
 
@@ -19,6 +19,6 @@ class Bake < Formula
   end
 
   test do
-    assert_equal "1.0.4", shell_output("#{bin}/bake version").chomp
+    assert_equal "1.0.5", shell_output("#{bin}/bake version").chomp
   end
 end
