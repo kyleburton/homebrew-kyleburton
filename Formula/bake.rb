@@ -1,7 +1,7 @@
 class Bake < Formula
   desc "Pure bash, very lightweight scripting and build framework."
   homepage "https://github.com/kyleburton/bake"
-  url "https://github.com/kyleburton/bake/releases/download/1.0.4/bake-1.0.4.tgz"
+  url "https://github.com/kyleburton/bake/archive/1.0.4.tar.gz"
   sha256 "f5e10929a1d691b54f81fbdba449b539943f28768b1d8a01bba0ddfea07d2984"
 
   depends_on "bash" => :recommended
