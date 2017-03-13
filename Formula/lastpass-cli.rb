@@ -2,7 +2,7 @@ class LastpassCli < Formula
   desc "LastPass command-line interface tool: github.com/kyleburton integration branch"
   homepage "https://github.com/kyleburton/lastpass-cli"
   url "https://github.com/kyleburton/lastpass-cli/archive/v1.1.3-krb.tar.gz"
-  sha256 "f9df0af574213e37970816a6e3e8eef78ce65b322334d5210372ba7a98f9386a"
+  sha256 "0002a2780951699a29ab08d0d5f4e4384dfa38b9bc09ed587f3372f170719bf1"
   head "https://github.com/lastpass/lastpass-cli.git"
 
   depends_on "asciidoc" => :build
