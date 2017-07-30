@@ -1,0 +1,153 @@
+#!/usr/bin/env bash
+
+# TODO: parse the formula files to get these
+PACKAGE_REPOS="git@github.com:kyleburton/bake.git git@github.com:kyleburton/randwords.git"
+
+################################################################################
+# helper functions
+function init () {
+  if [ -e "$HOME/.github.d/github.env" ]; then
+    . "$HOME/.github.d/github.env"
+  fi
+
+  if [ -z "$GITHUB_TOKEN" ]; then
+    bake_echo_red "Error: GITHUB_TOKEN is not set!"
+    exit 1
+  fi
+}
+
+function git_url_to_repo () {
+  local url="$1"
+
+  basename "$(echo "$url" | cut -f2 -d/)" .git
+}
+
+function git_url_to_owner () {
+  local url="$1"
+  echo "$url" | cut -f2 -d: | cut -f1 -d/
+}
+
+function pkgname_to_git_url () {
+  local pkgname="$1"
+  for git_url in $PACKAGE_REPOS; do
+    if [[ $git_url == *"$pkgname"* ]]; then
+      echo $git_url
+      return 0
+    fi
+  done
+
+  # nb: not found :(
+  echo ""
+  return 1
+}
+
+################################################################################
+# github api
+function git-http:get () {
+  local uri="$1"
+  local url
+  if [[ $uri == http* ]]; then
+    # no change, keep it as is
+    url="$uri"
+  else
+    # no http prefix? add one
+    url="https://api.github.com/$uri"
+  fi
+  # curl -s https://api.github.com/repos/kyleburton/randwords/releases
+  echo "git-http:get $url" 1>&2
+  curl -s "$url"
+}
+
+function git:latest-release () {
+  local git_url="$1"
+  local owner="$(git_url_to_owner "$git_url")"
+  local repo="$(git_url_to_repo "$git_url")"
+  git-http:get "repos/$owner/$repo/releases/latest"
+}
+
+################################################################################
+# bake tasks
+bake_task list "List releaseable pacakges.  bake list (packages)"
+function list () {
+  local cmd="${1:-}"
+
+  case "$cmd" in
+    packages)
+      # TODO: parse the formula files to get the list
+      for url in $PACKAGE_REPOS; do
+        echo "bake release $(git_url_to_repo $url)"
+      done
+      ;;
+    *)
+      echo "bake list packages"
+      ;;
+  esac
+}
+
+function github.release.tarball () {
+  local pkgname="$1"
+}
+
+bake_task release "Generate or update release for a supported package (see 'list packages')"
+function release () {
+  local pkgname="${1:-}"
+  if [ -z "$pkgname" ]; then
+    list packages
+    return 1
+  fi
+  init
+
+  local git_url
+  git_url="$(pkgname_to_git_url "$pkgname")"
+  local latest_release_info
+  latest_release_info="$(git:latest-release "$git_url")"
+
+  echo "$latest_release_info"
+
+  local assets_url
+  assets_url="$(echo "$latest_release_info" | jq -r .assets_url)"
+  bake_echo_green "assets_url=$assets_url"
+  local assets_info
+  set -x
+  assets_info="$(git-http:get "$assets_url")"
+  bake_echo_green "$assets_info"
+
+  # get the assets url for the osx (homebrew) & linux (linuxbrew)
+  #   OSX:   [0].assets find where browser_download_url contains darwin_amd64
+  #   Linux: [0].assets find where browser_download_url contains linux_amd64
+
+  # ok, at this point I see that utilities which are just tgz's and are
+  # platform agnostic, like bake, won't have assets, while things with builds,
+  # like the randwords go code, will have platform specific build assets.  So
+  # my plan is now to just write two different release tasks, one for bake and
+  # one for the randwords go project, then see how those can be made generic
+  # for tgz vs binary (platform specific) distributions.
+
+  case $pkgname in
+    bake)
+      release-bake
+      ;;
+    randwords)
+      release-randwords
+      ;;
+  esac
+}
+
+function release-bake () {
+  bake_echo_red "Implement this: release-bake"
+}
+
+function release-randwords () {
+  bake_echo_red "Implement this: release-randwords"
+}
+
+bake_task utest
+function utest () {
+  local url="$1"
+  if [[ $url == http* ]]; then
+    bake_echo_green "OK:  it starts with http: url=$url"
+  else
+    bake_echo_red "ERR: it does not start with http: url=$url"
+  fi
+  return 0
+}
