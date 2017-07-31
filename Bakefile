@@ -167,6 +167,7 @@ function release-bake () {
   local tag_name
   local lfile
 
+  # jq -r -C ".assets[0].browser_download_url"
   git_url="$(pkgname-to-git-url "$pkgname")"
   tarball_url="$(git:latest-release "$git_url" | jq -r .tarball_url)"
   tag_name="$(git:latest-release "$git_url" | jq -r .tag_name)"

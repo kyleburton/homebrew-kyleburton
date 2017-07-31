@@ -2,8 +2,8 @@ class Bake < Formula
   version = "1.0.6"
   desc "Pure bash, very lightweight scripting and build framework."
   homepage "https://github.com/kyleburton/bake"
-  url "https://github.com/kyleburton/bake/archive/#{version}.tar.gz"
-  sha256 "786097575df13e4e2177c4c22bea1bd59c01a4dbfeece1af09bbd2f269d05852"
+  url "https://github.com/kyleburton/bake/releases/download/#{version}/bake-#{version}.tgz"
+  sha256 "2b7d4006dec823a31556a3ecf80d44002a3b09bb2f1290b80e816ca48cae5118"
 
   depends_on "bash" => :recommended
 
