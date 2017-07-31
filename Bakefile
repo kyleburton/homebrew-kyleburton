@@ -2,6 +2,8 @@
 
 # TODO: parse the formula files to get these
 PACKAGE_REPOS="git@github.com:kyleburton/bake.git git@github.com:kyleburton/randwords.git"
+HTTP_CACHING="${HTTP_CACHING:-yes}"
+
 
 ################################################################################
 # helper functions
@@ -14,6 +16,10 @@ function init () {
     bake_echo_red "Error: GITHUB_TOKEN is not set!"
     exit 1
   fi
+
+  test -d .cache || mkdir .cache
+  test -d build || mkdir build
+  test -f .cache/cache.map || touch .cache/cache.map
 }
 
 function git_url_to_repo () {
@@ -27,7 +33,7 @@ function git_url_to_owner () {
   echo "$url" | cut -f2 -d: | cut -f1 -d/
 }
 
-function pkgname_to_git_url () {
+function pkgname-to-git-url () {
   local pkgname="$1"
   for git_url in $PACKAGE_REPOS; do
     if [[ $git_url == *"$pkgname"* ]]; then
@@ -41,8 +47,19 @@ function pkgname_to_git_url () {
   return 1
 }
 
+function caching-is-on () {
+  [[ $HTTP_CACHING == yes ]]
+}
+
+function url-to-cache-key () {
+  # TODO: should we cache the headers? or just the content?
+  local fkey="$(echo "$@" | sha256sum | cut -f1 -d' ')"
+  echo "./.cache/$fkey"
+}
+
 ################################################################################
 # github api
+bake_task git-http:get "http get"
 function git-http:get () {
   local uri="$1"
   local url
@@ -53,9 +70,23 @@ function git-http:get () {
     # no http prefix? add one
     url="https://api.github.com/$uri"
   fi
+
   # curl -s https://api.github.com/repos/kyleburton/randwords/releases
   echo "git-http:get $url" 1>&2
-  curl -s "$url"
+
+  if caching-is-on; then
+    local cache_file="$(url-to-cache-key "$url")"
+    # bake_echo_green "CACHE cache_file=$cache_file url=$url"
+    if [ ! -f "$cache_file" ]; then
+      curl --location -s -o "$cache_file" "$url"
+      (cat .cache/cache.map; printf "$cache_file\t$url") | sort -u > .cache/new.cache.map
+      mv -f -T .cache/new.cache.map .cache/cache.map
+    fi
+    cat "$cache_file"
+    return 0
+  fi
+
+  curl --location -s "$url"
 }
 
 function git:latest-release () {
@@ -84,10 +115,6 @@ function list () {
   esac
 }
 
-function github.release.tarball () {
-  local pkgname="$1"
-}
-
 bake_task release "Generate or update release for a supported package (see 'list packages')"
 function release () {
   local pkgname="${1:-}"
@@ -98,19 +125,19 @@ function release () {
   init
 
   local git_url
-  git_url="$(pkgname_to_git_url "$pkgname")"
+  git_url="$(pkgname-to-git-url "$pkgname")"
   local latest_release_info
   latest_release_info="$(git:latest-release "$git_url")"
 
-  echo "$latest_release_info"
+  # echo "$latest_release_info"
 
   local assets_url
   assets_url="$(echo "$latest_release_info" | jq -r .assets_url)"
-  bake_echo_green "assets_url=$assets_url"
+  # bake_echo_green "assets_url=$assets_url"
   local assets_info
-  set -x
+
   assets_info="$(git-http:get "$assets_url")"
-  bake_echo_green "$assets_info"
+  # bake_echo_green "$assets_info"
 
   # get the assets url for the osx (homebrew) & linux (linuxbrew)
   #   OSX:   [0].assets find where browser_download_url contains darwin_amd64
@@ -134,6 +161,19 @@ function release () {
 }
 
 function release-bake () {
+  local pkgname="bake"
+  local git_url
+  local tarball_url
+  local tag_name
+  local lfile
+
+  git_url="$(pkgname-to-git-url "$pkgname")"
+  tarball_url="$(git:latest-release "$git_url" | jq -r .tarball_url)"
+  tag_name="$(git:latest-release "$git_url" | jq -r .tag_name)"
+  lfile="build/bake-$tag_name.tar.gz"
+  bake_echo_green "pulling tarball from: $tarball_url to $lfile"
+  curl -o $lfile --location -s "$tarball_url"
+
   bake_echo_red "Implement this: release-bake"
 }
 
@@ -141,13 +181,3 @@ function release-randwords () {
   bake_echo_red "Implement this: release-randwords"
 }
 
-bake_task utest
-function utest () {
-  local url="$1"
-  if [[ $url == http* ]]; then
-    bake_echo_green "OK:  it starts with http: url=$url"
-  else
-    bake_echo_red "ERR: it does not start with http: url=$url"
-  fi
-  return 0
-}
