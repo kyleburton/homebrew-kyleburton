@@ -16,11 +16,10 @@ class Bake < Formula
     bin.install "bin/bake-completion.sh"
   end
 
-  def caveats; <<-EOS.undent
-    If you'd like to use command line completion for bash, please
-    source the file #{bin}/bake-completion.sh from your ~/.bashrc
-    or ~/.bash_profile
-    EOS
+  def caveats
+    ["If you'd like to use command line completion for bash, please",
+     "source the file #{bin}/bake-completion.sh from your ~/.bashrc",
+     "or ~/.bash_profile"].join("\n")
   end
 
   test do
