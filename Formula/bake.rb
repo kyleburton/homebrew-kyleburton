@@ -1,10 +1,9 @@
 class Bake < Formula
-  version = "1.0.16"
+  version = "1.0.17"
   desc      "Pure bash, very lightweight scripting and build framework."
   homepage  "https://github.com/kyleburton/bake"
-  # url       "https://github.com/kyleburton/bake/releases/download/bake-#{version}/bake-#{version}.tgz"
-  url       "https://github.com/kyleburton/bake/archive/#{version}.tar.gz"
-  sha256    "fd3c5873571ed3d1f866eaad768112c8f88a0315632b13338167c4887065a5c7"
+  url       "https://github.com/kyleburton/bake/releases/download/#{version}/bake-#{version}.tar.gz"
+  sha256    "56bb538e143e1028998ccca9c1415d917d510e24784270475844a4aa4a37cf9e"
 
   # NB: on OSX bash is really required b/c OS X's bash don't do arrays, while
   # sane, recent (like since the year 2000) supports arrays.  We should make the depends_on
